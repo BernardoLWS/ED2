@@ -1,118 +1,73 @@
 import tkinter as tk
-import random, math
 
-#   Inicio de ventana
-root = tk.Tk()  # inicia
-root.title("Red Social - Grafo de Amigos")      # titulo de la ventana
-root.geometry("550x600")    # tamaño de la ventana
+class view:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Red Social - Grafo de Amigos")
+        self.root.geometry("600x600")
 
-usuarios = {}
-amistades = {}
+        # Caja texto
+        frame_texto = tk.Frame(self.root)
+        frame_texto.pack(fill="x", padx=10, pady=10)
 
-# caja texto
-label_nombre = tk.Label(root,text="Nombre :")
-label_nombre.place(x=50,y=40)
-entry_nombre = tk.Entry(root, width=40)     
-entry_nombre.place(x=150,y=40)
+        tk.Label(frame_texto, text="Nombre :").pack(side="left")
+        self.entry_nombre = tk.Entry(frame_texto, width=40)
+        self.entry_nombre.pack(side="left", fill="x", expand=True)
 
-# caja usuario 
-label_usuarios = tk.Label(root, text=" USUARIOS :")
-label_usuarios.place(x=50,y=130)
-listbox_usuarios = tk.Listbox(root, width=30, height=20)
-listbox_usuarios.place(x=50,y=150)
+        # Botones
+        frame_botones = tk.Frame(self.root)
+        frame_botones.pack(fill="x", padx=10, pady=10)
 
-# caja amigos
-label_usuarios_amigos = tk.Label(root, text=" AMIGOS :")
-label_usuarios_amigos.place(x=320,y=130)
-listbox_usuarios_amigos = tk.Listbox(root, width=30, height=20)
-listbox_usuarios_amigos.place(x=320,y=150)
+        self.btn_agregar_usuario = tk.Button(frame_botones, text="Agregar Usuario", bg="steelblue", fg="white")
+        self.btn_agregar_usuario.pack(side="left", padx=30)
 
-# Función para agregar usuario
-def agregar_usuario():
-    nombre = entry_nombre.get().strip()
-    if nombre not in usuarios:
-        listbox_usuarios.insert(tk.END, nombre)
-        entry_nombre.delete(0, tk.END)
+        self.btn_agregar_amigo = tk.Button(frame_botones, text="Agregar Amigo", bg="purple", fg="white")
+        self.btn_agregar_amigo.pack(side="left", padx=30)
 
-        # Posición aleatoria sin colisiones
-        """while True:
-            x = random.randint(100, 800)
-            y = random.randint(100, 500)
-            valido = True
-            for pos in usuarios.values():
-                dx, dy = x - pos[0], y - pos[1]
-                if math.sqrt(dx*dx + dy*dy) < 80:
-                    valido = False
-                    break
-            if valido:
-                usuarios[nombre] = (x, y)
-                break"""
-    
+        self.btn_grafo = tk.Button(frame_botones, text="Grafo Amigos", bg="green", fg="white")
+        self.btn_grafo.pack(side="left", padx=30)
 
-def agregar_amigo():
-    seleccion = listbox_usuarios.curselection()
-    if seleccion:
-        usuario = listbox_usuarios.get(seleccion[0])
-   
-        amigo = entry_nombre.get().strip()
+        # Caja usuarios y amigos
+        frame_listas = tk.Frame(self.root)
+        frame_listas.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # Verificar que el amigo exista en usuarios y no sea el mismo
-        if amigo:
-            if amigo not in amistades[usuario]:
-                amistades[usuario].append(amigo)
-            if usuario not in amistades[amigo]:
-                amistades[amigo].append(usuario)
+        frame_usuarios = tk.Frame(frame_listas)
+        frame_usuarios.pack(side="left", fill="both", expand=True, padx=5)
 
-        entry_nombre.delete(0, tk.END)
-        
-# Función para agregar amistad
-def mostrar_amigos(event=None):
-    seleccion = listbox_usuarios.curselection()
-    if seleccion:
-        usuario = listbox_usuarios.get(seleccion[0])
-        amigos = amistades.get(usuario, [])
+        tk.Label(frame_usuarios, text="USUARIOS :").pack(anchor="w")
+        self.listbox_usuarios = tk.Listbox(frame_usuarios)
+        self.listbox_usuarios.pack(fill="both", expand=True)
 
-        # Limpiar el Listbox de amigos antes de mostrar
-        listbox_usuarios_amigos.delete(0, tk.END)
+        frame_amigos = tk.Frame(frame_listas)
+        frame_amigos.pack(side="left", fill="both", expand=True, padx=5)
 
-        if amigos:
-            for amigo in amigos:
-                listbox_usuarios_amigos.insert(tk.END,"hola")
-        else:
-            listbox_usuarios_amigos.insert(tk.END,usuario)
-           # listbox_usuarios_amigos.insert(tk.END, "no tiene amigos registrados")
-        
+        tk.Label(frame_amigos, text="AMIGOS :").pack(anchor="w")
+        self.listbox_amigos = tk.Listbox(frame_amigos)
+        self.listbox_amigos.pack(fill="both", expand=True)
 
-# Función para dibujar grafo
-def dibujar_grafo():
-    ventana_grafo = tk.Toplevel(root)
-    ventana_grafo.title("Visualización del Grafo")
-    canvas = tk.Canvas(ventana_grafo, width=900, height=600, bg="white")
-    canvas.pack()
+    def mostrar_usuarios(self, usuarios):
+        self.listbox_usuarios.delete(0, tk.END)
+        for u in usuarios:
+            self.listbox_usuarios.insert(tk.END, u)
 
-    # Dibujar aristas
-    for u, amigos in amistades.items():
-        x1, y1 = usuarios[u]
-        for v in amigos:
-            x2, y2 = usuarios[v]
-            canvas.create_line(x1, y1, x2, y2, fill="blue", width=2)
+    def mostrar_amigos(self, amistades):
+        seleccion = self.listbox_usuarios.curselection()
+        self.listbox_amigos.delete(0, tk.END)
+        if seleccion:
+            if amistades:
+                for a in amistades:
+                    self.listbox_amigos.insert(tk.END , a)
+            else:
+                self.listbox_amigos.insert(tk.END, "No tiene amigos registrados")
+  
+    def mostrar_grafo(self):
+        # Crear una nueva ventana vacía
+        nueva_ventana = tk.Toplevel(self.root)
+        nueva_ventana.title("Grafo de Amigos")
+        nueva_ventana.geometry("1200x900")
 
-    # Dibujar nodos
-    for nombre, (x, y) in usuarios.items():
-        canvas.create_oval(x-30, y-30, x+30, y+30, fill="orange")
-        canvas.create_text(x, y, text=nombre, font=("Arial", 12))
+        # Por ahora solo un label para confirmar que está vacía
+        tk.Label(nueva_ventana, text="Aquí se mostrará el grafo").pack(expand=True)
 
-# Botones
-btn_agregar_usuarios = tk.Button(root, text="Agregar Usuario", bg="steelblue", fg="white", command=agregar_usuario)
-btn_agregar_usuarios.place(x=100,y=80)
-
-btn_agregar_amigos = tk.Button(root, text="Agregar Amigo", bg="purple", fg="white", command=agregar_amigo)
-btn_agregar_amigos.place(x=230,y=80)
-
-"""btn_grafo = tk.Button(root, text="Mostrar Grafo", bg="green", fg="white", command=dibujar_grafo)
-btn_grafo.place(x=350,y=80)"""
-
-# Evento al seleccionar usuario
-listbox_usuarios.bind("<<ListboxSelect>>", mostrar_amigos)
-
-root.mainloop()
+    def iniciar(self):
+        self.root.mainloop()
