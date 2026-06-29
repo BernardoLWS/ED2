@@ -33,4 +33,4 @@ class controller:
             self.view.mostrar_amigos(amigos)
     
     def dibujar_grafo(self):
-          self.view.mostrar_grafo()
+          self.view.mostrar_grafo(self.model.usuarios,self.model.amistades)

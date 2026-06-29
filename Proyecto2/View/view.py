@@ -1,4 +1,6 @@
 import tkinter as tk
+import random
+import math
 
 class view:
     def __init__(self):
@@ -60,14 +62,42 @@ class view:
             else:
                 self.listbox_amigos.insert(tk.END, "No tiene amigos registrados")
   
-    def mostrar_grafo(self):
-        # Crear una nueva ventana vacía
+    def mostrar_grafo(self, usuarios, amistades):
+        # Crear nueva ventana
         nueva_ventana = tk.Toplevel(self.root)
         nueva_ventana.title("Grafo de Amigos")
         nueva_ventana.geometry("1200x900")
 
-        # Por ahora solo un label para confirmar que está vacía
-        tk.Label(nueva_ventana, text="Aquí se mostrará el grafo").pack(expand=True)
+        # Canvas
+        canvas = tk.Canvas(nueva_ventana, width=1200, height=900, bg="white")
+        canvas.pack(fill="both", expand=True)
+
+        posiciones = {}
+        centro_x, centro_y = 600, 450   # centro de la ventana
+        radio = 350                     # radio del círculo de distribución
+        r_nodo = 40                     # radio de cada nodo
+
+        # Distribuir nodos en círculo
+        n = len(usuarios)
+        for i, usuario in enumerate(usuarios):
+            angulo = (2 * math.pi * i) / n
+            x = centro_x + radio * math.cos(angulo)
+            y = centro_y + radio * math.sin(angulo)
+            posiciones[usuario] = (x, y)
+
+        # Dibujar aristas (amistades)
+        for u, amigos in amistades.items():
+            if u in posiciones:
+                x1, y1 = posiciones[u]
+                for v in amigos:
+                    if v in posiciones:
+                        x2, y2 = posiciones[v]
+                        canvas.create_line(x1, y1, x2, y2, fill="blue", width=2)
+
+        # Dibujar nodos (usuarios)
+        for usuario, (x, y) in posiciones.items():
+            canvas.create_oval(x-r_nodo, y-r_nodo, x+r_nodo, y+r_nodo,fill="orange", outline="black")
+            canvas.create_text(x, y, text=usuario, font=("Arial", 12, "bold"))
 
     def iniciar(self):
         self.root.mainloop()
