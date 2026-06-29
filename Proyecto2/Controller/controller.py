@@ -21,16 +21,20 @@ class controller:
         if seleccion:
             usuario = self.view.listbox_usuarios.get(seleccion[0])
             amigo = self.view.entry_nombre.get().strip()
-            self.model.agregar_amigo(usuario, amigo)
-            self.view.mostrar_amigos(self.model.get_amigos(usuario))
-            self.view.entry_nombre.delete(0, tk.END)
+            if amigo:
+                self.model.agregar_amigo(usuario, amigo)
+                amigos = self.model.get_amigos(usuario)
+                amigos_sugeridos = self.model.get_amigos_de_amigos(usuario)
+                self.view.mostrar_amigos(amigos, amigos_sugeridos)
+                self.view.entry_nombre.delete(0, tk.END)
 
     def mostrar_amigos(self, event):
         seleccion = self.view.listbox_usuarios.curselection()
         if seleccion:
             usuario = self.view.listbox_usuarios.get(seleccion[0])
             amigos = self.model.get_amigos(usuario)
-            self.view.mostrar_amigos(amigos)
+            amigos_sugeridos = self.model.get_amigos_de_amigos(usuario)
+            self.view.mostrar_amigos(amigos, amigos_sugeridos)
     
     def dibujar_grafo(self):
           self.view.mostrar_grafo(self.model.usuarios,self.model.amistades)
