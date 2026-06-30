@@ -1,0 +1,73 @@
+Proyecto2 - Documentación breve
+
+1) Resumen: 
+Este proyecto implementa una pequeña "red social" basada en un grafo de amistades usando Python y una interfaz gráfica con Tkinter. El patrón usado es MVC dividido en:
+- Model: lógica y estructura de datos del grafo.
+- View: interfaz gráfica (listas, botones, canvas para grafo).
+- Controller: conecta la vista y el modelo, maneja eventos (botones, selección).
+
+2) Estructura del proyecto (archivos principales):
+- Proyecto2/main.py: inicia la aplicación (crea view, model y controller).
+- Proyecto2/Model/model.py: clase model con usuarios, amistades y operaciones sobre el grafo.
+- Proyecto2/View/view.py: clase view responsable de toda la UI y visualización del grafo.
+- Proyecto2/Controller/controller.py: clase controller que enlaza eventos de la UI con el modelo.
+
+3) Cómo se mueven los datos (flujo):
+- El usuario escribe un nombre en entry_nombre (vista).
+- Al pulsar un botón (Agregar Usuario o Agregar Amigo), la vista dispara el comando asociado en controller.
+- Controller lee la entrada (view.entry_nombre.get()), llama a los métodos del model (agregar_usuario o agregar_amigo) para modificar la estructura de datos.
+- Después de actualizar el modelo, controller solicita a la vista que refresque la información mostrada (view.mostrar_usuarios o view.mostrar_amigos) pasando los datos actuales del modelo.
+- Para visualizar el grafo, controller llama view.mostrar_grafo(model.usuarios, model.amistades), y la vista usa esos diccionarios para dibujar nodos y conexiones en un Canvas.
+
+4) Cómo muestra los datos (interfaz):
+- Lista de usuarios: view.mostrar_usuarios recibe un iterable de nombres y los muestra en listbox_usuarios con numeración.
+- Lista de amigos y sugerencias: view.mostrar_amigos recibe la lista de amigos directos y la lista de amigos sugeridos; muestra primero "AMIGOS DIRECTOS" (grado 1) y luego "AMIGOS SUGERIDOS" (grado 2).
+- Visualización del grafo: view.mostrar_grafo crea una ventana con un Canvas, calcula posiciones con _calcular_posiciones (coloca nodos en un círculo alrededor de un radio fijo) y dibuja conexiones y nodos (_dibujar_conexiones, _dibujar_nodos). La leyenda diferencia usuarios registrados de amigos "referidos".
+
+5) Uso de DFS y BFS:
+- BFS: sí está implementado. En Model.model.calcular_grado_separacion se usa BFS (collections.deque) para calcular grados de separación entre dos usuarios. Implementación básica: cola con (usuario, distancia), conjunto visitados, se expanden vecinos hasta encontrar el destino; devuelve -1 si no hay conexión.
+- DFS: no hay una implementación explícita de DFS en el código revisado. Si se necesitara, se podría implementar recursiva o con pila para búsquedas que requieran recorrido profundo, pero para calcular distancia mínima entre nodos BFS es la elección correcta.
+
+6) Cómo funciona "sugerir amigo" y los grados de separación:
+- Sugerir amigo: está implementado en model.get_amigos_de_amigos(usuario).
+  - Algoritmo: toma los amigos directos (grado 1), recorre los amigos de cada amigo y recopila aquellos que no sean ni el usuario ni amigos directos. El resultado son usuarios a grado 2 (amigos de amigos) sin duplicados.
+  - La vista presenta esas sugerencias marcadas como "Grado: 2".
+- Grados de separación: model.calcular_grado_separacion usa BFS para retornar el número mínimo de aristas entre dos usuarios. Ejemplos:
+  - Mismo usuario -> 0
+  - Amigo directo -> 1
+  - Amigo de amigo -> 2
+  - No conectado -> -1
+
+7) ¿Grafo ponderado (pesado) o no ponderado? y por qué:
+- El grafo es NO ponderado (no hay pesos/valores en las aristas). Razones observadas en el código:
+  - Las relaciones se almacenan en model.amistades como listas de nombres (adjacency lists) sin valores numéricos asociados.
+  - Todas las operaciones (BFS, sugerencias) tratan las aristas de forma uniforme, sin considerar coste o peso.
+- Conclusión: no ponderado; cada amistad es simplemente una conexión (arista) sin peso.
+
+8) Cómo trabaja la función agregar usuario y agregar amistades (detalles de implementación):
+- model.agregar_usuario(nombre):
+  - Comprueba que nombre no esté vacío y que no exista ya en self.usuarios.
+  - Si es nuevo, añade nombre a self.usuarios con valor None y crea una entrada vacía en self.amistades[name] = [] (lista de adyacencia).
+- model.agregar_amigo(usuario, amigo):
+  - Asegura que ambos nombres existen llamando agregar_usuario si falta alguno (esto crea nodos implícitos si se agregan al volar).
+  - Garantiza que existen listas en self.amistades para ambos.
+  - Evita la autoamistad: if amigo != usuario.
+  - Añade la relación de forma bidireccional (no dirigida):
+      - si amigo no está en self.amistades[usuario], se hace append.
+      - si usuario no está en self.amistades[amigo], se hace append.
+  - Resultado: la arista queda representada en ambas listas (consistencia para grafo no dirigido).
+
+9) Complejidad y notas de rendimiento:
+- Estructura: diccionarios + listas (adjacency lists). Operaciones comunes:
+  - agregar_usuario: O(1) promedio (inserción en dicts y asignación de lista vacía).
+  - agregar_amigo: O(1) promedio para las comprobaciones e inserciones; pero la comprobación de existencia en la lista de amigos es O(k) donde k = número de amigos del usuario (podría optimizarse usando sets en lugar de listas para obtener O(1) en comprobaciones y evitar duplicados más eficientemente).
+  - get_amigos_de_amigos: O(sum grados de los amigos directos) en tiempo.
+  - calcular_grado_separacion (BFS): O(V + E) en el peor caso.
+
+10) Recomendaciones rápidas (posibles mejoras):
+- Cambiar self.amistades[...] de listas a sets para mejorar comprobaciones de existencia y evitar duplicados más eficientemente.
+- Implementar persistencia (guardar/leer usuarios y amistades desde archivo JSON) si se desea mantener datos entre ejecuciones.
+- Mejorar el layout del grafo para distribuir nodos según conectividad (algoritmo de fuerza/gravidad) en lugar de un círculo fijo si la red crece.
+- Añadir DFS si se necesita un recorrido diferente (no para distancias mínimas).
+
+-- Fin del documento --
